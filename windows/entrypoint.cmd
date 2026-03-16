@@ -11,11 +11,11 @@ if not "%EULA%"=="TRUE" (
 
 if not exist "bedrock_server_mod.exe" (
     if not "%GITHUB_MIRROR_URL%"=="" (
-        lip.exe config set github_proxies=%GITHUB_MIRROR_URL%
+        lip.exe config set github_proxy %GITHUB_MIRROR_URL%
     )
 
     if not "%GO_MODULE_PROXY_URL%"=="" (
-        lip.exe config set go_module_proxies=%GO_MODULE_PROXY_URL%
+        lip.exe config set go_module_proxy %GO_MODULE_PROXY_URL%
     )
 
     if "%VERSION%"=="LATEST" (

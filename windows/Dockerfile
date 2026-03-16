@@ -4,7 +4,7 @@ ADD https://aka.ms/vc14/vc_redist.x64.exe vcredist.exe
 
 RUN vcredist.exe /install /quiet /norestart && del vcredist.exe
 
-ADD https://github.com/futrime/lip/releases/latest/download/lip-cli-win-x64-self-contained.zip lip.zip
+ADD https://github.com/futrime/lip/releases/download/v0.34.2/lip-0.34.2-win-x64.zip lip.zip
 
 RUN mkdir "\Program Files\lip" \
  && cd "\Program Files\lip" \
