@@ -24,6 +24,7 @@ RUN mkdir -p /usr/share/dotnet \
 RUN curl -L https://github.com/futrime/lip/releases/download/v0.34.4/lip-0.34.4-linux-x64.tar.xz -o /tmp/lip.tar.xz \
     && mkdir -p /opt/lip-linux \
     && tar -xJf /tmp/lip.tar.xz -C /opt/lip-linux \
+    && chmod +x /opt/lip-linux/lip \
     && ln -sf /opt/lip-linux/lip /usr/local/bin/lip \
     && rm /tmp/lip.tar.xz
 
