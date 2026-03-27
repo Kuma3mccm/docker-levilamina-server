@@ -80,6 +80,9 @@ if [ ! -f "bedrock_server_mod.exe" ]; then
         echo "[4] Go Module Proxy: $GO_MODULE_PROXY_URL"
     fi
 
+    # 追加: プラットフォームを win-x64 に固定
+    lip config set platform win-x64 || echo "[4] platform 設定失敗"
+
     set +e
     if [ "$VERSION" = "LATEST" ]; then
         lip install github.com/LiteLDev/LeviLamina >/tmp/lip-install.log 2>&1
