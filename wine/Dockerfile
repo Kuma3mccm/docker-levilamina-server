@@ -18,7 +18,7 @@ RUN dpkg --add-architecture i386 \
 
 RUN apt update \
     && apt install -y --install-recommends winehq-stable xvfb cabextract \
-    && wget -O /usr/bin/winetricks https://github.com/Winetricks/winetricks/raw/b76e1ee79ac57d7aceb384f74518fc423265810c/src/winetricks \
+    && wget -O /usr/bin/winetricks https://github.com/Winetricks/winetricks/raw/b792287f5bec9086916aa9b81788e0ea38f02c24/src/winetricks \
     && chmod +x /usr/bin/winetricks \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
