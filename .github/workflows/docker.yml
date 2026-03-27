@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Image (日本語対応版)
 
 on:
   push:
@@ -6,8 +6,7 @@ on:
     paths:
       - 'wine/**'
   pull_request:
-    paths:
-      - 'wine/**'
+    branches: [ main ]
 
 jobs:
   build:
@@ -33,12 +32,22 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Build and push wine-jp image
+    - name: Extract Docker metadata（小文字化自動対応）
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ghcr.io/${{ github.repository_owner }}/docker-levilamina-server
+        tags: |
+          type=raw,value=latest-wine-jp,enable={{is_default_branch}}
+          type=raw,value=jp
+          type=sha,prefix={{branch}}-
+          
+    - name: Build and push
       uses: docker/build-push-action@v5
       with:
         context: ./wine
         file: ./wine/Dockerfile
         push: true
-        tags: |
-          ghcr.io/${{ github.repository_owner }}/docker-levilamina-server:latest-wine-jp
-          ghcr.io/${{ github.repository_owner }}/docker-levilamina-server:jp
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
