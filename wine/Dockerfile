@@ -23,9 +23,9 @@ RUN mkdir -p /usr/share/dotnet \
 # lip (Linux ネイティブ) をインストール
 RUN curl -L https://github.com/futrime/lip/releases/download/v0.34.4/lip-0.34.4-linux-x64.tar.xz -o /tmp/lip.tar.xz \
     && mkdir -p /opt/lip-linux \
-    && tar -xzf /tmp/lip.tar.gz -C /opt/lip-linux \
+    && tar -xJf /tmp/lip.tar.xz -C /opt/lip-linux \
     && ln -sf /opt/lip-linux/lip /usr/local/bin/lip \
-    && rm /tmp/lip.tar.gz
+    && rm /tmp/lip.tar.xz
 
 # /home/container 用 entrypoint を上書き
 COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
