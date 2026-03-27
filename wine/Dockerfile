@@ -2,11 +2,20 @@ FROM debian:stable-slim@sha256:99fc6d2a0882fcbcdc452948d2d54eab91faafc7db037df82
 
 ENV LIP_VERSION=0.34.4
 
+# 日本語ロケール設定（文字化け対策）
+ENV LANG=ja_JP.UTF-8 \
+    LANGUAGE=ja_JP:ja \
+    LC_ALL=ja_JP.UTF-8 \
+    TERM=xterm-256color
+
 RUN apt update \
     && apt install -y unzip \
     wget \
     locales \
     locales-all \
+    && sed -i '/ja_JP.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen ja_JP.UTF-8 \
+    && update-locale LANG=ja_JP.UTF-8 LC_ALL=ja_JP.UTF-8 \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
