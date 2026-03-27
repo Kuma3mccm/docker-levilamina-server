@@ -3,7 +3,8 @@ FROM ghcr.io/liteldev/levilamina-server:latest-wine
 # 日本語ロケール + .NET(Linux) + lip(Linux) を追加
 USER root
 
-RUN apt-get update && apt-get install -y locales ca-certificates curl wget xz-utils \
+RUN apt-get update && apt-get install -y \
+    locales ca-certificates curl wget xz-utils libicu-dev \
     && sed -i 's/# ja_JP.UTF-8 UTF-8/ja_JP.UTF-8 UTF-8/' /etc/locale.gen \
     && locale-gen ja_JP.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
