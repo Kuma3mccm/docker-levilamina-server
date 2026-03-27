@@ -17,8 +17,7 @@ export TERM=xterm-256color
 
 VERSION="${VERSION:-LATEST}"
 
-echo "[0] === LeviLamina サーバー起動 (日本語対応版 / ヘッドレス) ==="
-echo "[0] ロケール: $LANG"
+echo "[0] === LeviLamina サーバー起動 (自動インストール / ヘッドレス) ==="
 echo "[0] 日時: $(date)"
 echo "[0] バージョン: ${VERSION}"
 echo "[0] EULA: ${EULA:-未設定}"
@@ -28,54 +27,28 @@ if [ "$EULA" != "TRUE" ]; then
     exit 1
 fi
 
-echo "[1] ディレクトリと環境変数準備中..."
-mkdir -p "$XDG_RUNTIME_DIR" || echo "[1] XDG_RUNTIME_DIR 作成失敗"
+echo "[1] ディレクトリ準備..."
+mkdir -p "$XDG_RUNTIME_DIR" "$WINEPREFIX" || true
 
-# Wine 初期化（DISPLAY なし、速く終わらせる）
-if [ ! -d "$WINEPREFIX" ]; then
+# Wine 初期化（ハングしても抜ける）
+if [ ! -d "$WINEPREFIX/drive_c" ]; then
     echo "[2] Wine 環境を初期化中..."
-
-    mkdir -p "$WINEPREFIX" || echo "[2] WINEPREFIX 作成失敗 (${WINEPREFIX})"
-
-    TIMEOUT=60
-    echo "[2] wineboot --init を ${TIMEOUT} 秒タイムアウト付きで実行..."
     set +e
-    timeout ${TIMEOUT} wineboot --init >/tmp/wineboot.log 2>&1
+    timeout 60 wineboot --init >/tmp/wineboot.log 2>&1
     WB_CODE=$?
     set -e
-
     echo "[2] wineboot 終了コード: $WB_CODE"
-    sed -e '1,50p' /tmp/wineboot.log 2>/dev/null || echo "[2] wineboot.log 読み込み失敗"
-
-    if pgrep wineserver >/dev/null 2>&1; then
-        echo "[2] wineserver を終了します..."
-        wineserver -k || true
-        sleep 2
-    fi
-
-    if [ -d "$WINEPREFIX/drive_c" ]; then
-        echo "[2] Wine 初期化完了 (drive_c 確認済み)"
-    else
-        echo "[2] 警告: drive_c がありませんが続行します"
-    fi
-
-    echo "[3] .NET 10 と Visual C++ をインストール中..."
-    set +e
-    winetricks -q dotnet10 >/tmp/dotnet10.log 2>&1
-    echo "[3] dotnet10 終了コード: $?"
-    sed -e '1,20p' /tmp/dotnet10.log 2>/dev/null || true
-
-    winetricks -q vcrun2022 >/tmp/vcrun2022.log 2>&1
-    echo "[3] vcrun2022 終了コード: $?"
-    sed -e '1,20p' /tmp/vcrun2022.log 2>/dev/null || true
-    set -e
-    echo "[3] ランタイムインストール処理完了（失敗していても続行）"
-else
-    echo "[2] 既存の WINEPREFIX が見つかりました (${WINEPREFIX})"
+    sed -e '1,30p' /tmp/wineboot.log 2>/dev/null || true
+    wineserver -k || true
 fi
 
-echo "[4] Bedrock server.properties のポート設定..."
+if [ -d "$WINEPREFIX/drive_c" ]; then
+    echo "[2] Wine 初期化完了 (drive_c 確認済み)"
+else
+    echo "[2] 警告: drive_c がありませんが続行します"
+fi
 
+echo "[3] Bedrock server.properties のポート設定..."
 BEDROCK_PORT="${SERVER_PORT:-${SERVER_PORT_1:-${PORT:-19132}}}"
 
 if [ -f server.properties ]; then
@@ -89,20 +62,20 @@ max-players=10
 EOF
 fi
 
-echo "[4] Using Bedrock server-port=${BEDROCK_PORT}"
+echo "[3] Using Bedrock server-port=${BEDROCK_PORT}"
 
-echo "[5] LeviLamina インストール確認..."
+echo "[4] LeviLamina インストール確認..."
 if [ ! -f "bedrock_server_mod.exe" ]; then
-    echo "[5] LeviLamina をインストール中..."
+    echo "[4] LeviLamina を lip で自動インストールします (Linux ネイティブ)..."
 
     if [ -n "$GITHUB_MIRROR_URL" ]; then
-        lip config set github_proxy "$GITHUB_MIRROR_URL" || echo "[5] github_proxy 設定失敗"
-        echo "[5] GitHub ミラー: $GITHUB_MIRROR_URL"
+        lip config set github_proxy "$GITHUB_MIRROR_URL" || echo "[4] github_proxy 設定失敗"
+        echo "[4] GitHub ミラー: $GITHUB_MIRROR_URL"
     fi
 
     if [ -n "$GO_MODULE_PROXY_URL" ]; then
-        lip config set go_module_proxy "$GO_MODULE_PROXY_URL" || echo "[5] go_module_proxy 設定失敗"
-        echo "[5] Go Module Proxy: $GO_MODULE_PROXY_URL"
+        lip config set go_module_proxy "$GO_MODULE_PROXY_URL" || echo "[4] go_module_proxy 設定失敗"
+        echo "[4] Go Module Proxy: $GO_MODULE_PROXY_URL"
     fi
 
     set +e
@@ -114,30 +87,34 @@ if [ ! -f "bedrock_server_mod.exe" ]; then
     LIP_CODE=$?
     set -e
 
-    echo "[5] lip install 終了コード: $LIP_CODE"
+    echo "[4] lip install 終了コード: $LIP_CODE"
     sed -e '1,50p' /tmp/lip-install.log 2>/dev/null || true
 
-    if [ -n "$PACKAGES" ]; then
-        echo "[5] 追加パッケージをインストール中: $PACKAGES"
-        set +e
-        lip install $PACKAGES >/tmp/lip-packages.log 2>&1
-        echo "[5] 追加パッケージ 終了コード: $?"
-        sed -e '1,50p' /tmp/lip-packages.log 2>/dev/null || true
-        set -e
+    if [ $LIP_CODE -ne 0 ]; then
+        echo "[4] エラー: LeviLamina のインストールに失敗しました。ログを確認してください。"
+        exit 1
     fi
 
-    echo "[5] LeviLamina インストール処理完了（失敗していてもログを確認してください）"
+    if [ -n "$PACKAGES" ]; then
+        echo "[4] 追加パッケージをインストール中: $PACKAGES"
+        set +e
+        lip install $PACKAGES >/tmp/lip-packages.log 2>&1
+        PKG_CODE=$?
+        set -e
+        echo "[4] 追加パッケージ 終了コード: $PKG_CODE"
+        sed -e '1,50p' /tmp/lip-packages.log 2>/dev/null || true
+    fi
+
+    echo "[4] LeviLamina 自動インストール完了"
 else
-    echo "[5] LeviLamina は既にインストールされています"
+    echo "[4] LeviLamina は既にインストールされています"
 fi
 
-echo "[6] Wine バージョン確認..."
-wine --version || echo "[6] wine --version 取得失敗"
+echo "[5] wine / bedrock_server_mod.exe チェック..."
+wine --version || echo "[5] wine --version 取得失敗"
+ls -la bedrock_server_mod.exe || { echo "[5] エラー: bedrock_server_mod.exe がありません"; exit 1; }
 
-echo "[7] === LeviLamina サーバ起動中 ==="
-echo "[7] サーバディレクトリ: $(pwd)"
-echo "[7] bedrock_server_mod.exe の存在確認:"
-ls -la bedrock_server_mod.exe || echo "[7] bedrock_server_mod.exe が見つかりません"
+echo "[6] === LeviLamina サーバ起動中 ==="
+echo "[6] サーバディレクトリ: $(pwd)"
 
-echo "[8] サーバを起動します..."
 (cat | wine bedrock_server_mod.exe) 2>&1
