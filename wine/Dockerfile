@@ -21,7 +21,7 @@ RUN mkdir -p /usr/share/dotnet \
     && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet
 
 # lip (Linux ネイティブ) をインストール
-RUN curl -L https://github.com/LiteLDev/lip/releases/latest/download/lip-linux-x64.tar.gz -o /tmp/lip.tar.gz \
+RUN curl -L https://github.com/futrime/lip/releases/download/v0.34.4/lip-0.34.4-linux-x64.tar.xz -o /tmp/lip.tar.xz \
     && mkdir -p /opt/lip-linux \
     && tar -xzf /tmp/lip.tar.gz -C /opt/lip-linux \
     && ln -sf /opt/lip-linux/lip /usr/local/bin/lip \
