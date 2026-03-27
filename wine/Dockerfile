@@ -1,46 +1,42 @@
-FROM debian:stable-slim@sha256:99fc6d2a0882fcbcdc452948d2d54eab91faafc7db037df82425edcdcf950e1f
+FROM debian:12-slim
 
-ENV LIP_VERSION=0.34.4
+ENV DEBIAN_FRONTEND=noninteractive
 
-# 日本語ロケール設定（文字化け対策）
-ENV LANG=ja_JP.UTF-8 \
-    LANGUAGE=ja_JP:ja \
-    LC_ALL=ja_JP.UTF-8 \
-    TERM=xterm-256color
-
-RUN apt update \
-    && apt install -y unzip \
-    wget \
-    locales \
-    locales-all \
-    && sed -i '/ja_JP.UTF-8/s/^# //g' /etc/locale.gen \
-    && locale-gen ja_JP.UTF-8 \
-    && update-locale LANG=ja_JP.UTF-8 LC_ALL=ja_JP.UTF-8 \
-    && apt clean \
+# 必要パッケージ
+RUN apt-get update && apt-get install -y \
+    ca-certificates curl wget gnupg \
+    wine64 winbind cabextract p7zip-full \
+    xvfb winetricks \
+    libicu-dev libkrb5-3 zlib1g \
+    unzip procps \
     && rm -rf /var/lib/apt/lists/*
 
-RUN dpkg --add-architecture i386 \
-    && mkdir -pm755 /etc/apt/keyrings \
-    && wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key \
-    && wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bookworm/winehq-bookworm.sources \
-    && sed -i -e's/ main/ main contrib/g' /etc/apt/sources.list.d/debian.sources
+# .NET (Linux) ランタイム 10.x をインストール
+# ※実際のバージョン/URLは MS 公式に合わせて調整
+RUN mkdir -p /usr/share/dotnet \
+    && cd /usr/share/dotnet \
+    && wget -O dotnet.tar.gz https://download.visualstudio.microsoft.com/download/pr/xxx/dotnet-runtime-10.0.0-linux-x64.tar.gz \
+    && tar -xzf dotnet.tar.gz \
+    && rm dotnet.tar.gz \
+    && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet
 
-RUN apt update \
-    && apt install -y --install-recommends winehq-stable xvfb cabextract \
-    && wget -O /usr/bin/winetricks https://github.com/Winetricks/winetricks/raw/b792287f5bec9086916aa9b81788e0ea38f02c24/src/winetricks \
-    && chmod +x /usr/bin/winetricks \
-    && apt clean \
-    && rm -rf /var/lib/apt/lists/*
+# lip (Linux ネイティブ) をインストール
+RUN curl -L https://github.com/LiteLDev/lip/releases/latest/download/lip-linux-x64.tar.gz -o /tmp/lip.tar.gz \
+    && mkdir -p /opt/lip \
+    && tar -xzf /tmp/lip.tar.gz -C /opt/lip \
+    && ln -s /opt/lip/lip /usr/local/bin/lip \
+    && rm /tmp/lip.tar.gz
 
-ADD https://github.com/futrime/lip/releases/download/v${LIP_VERSION}/lip-${LIP_VERSION}-win-x64.zip lip.zip
+# 作業ディレクトリ
+WORKDIR /home/container
 
-RUN unzip lip.zip -d /opt/lip/ \
-    && rm lip.zip
+# entrypoint.sh をコピー
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-COPY --chmod=755 lip /usr/local/bin/lip
+ENV PTERODACTYL=true
+ENV LANG=ja_JP.UTF-8
+ENV LANGUAGE=ja_JP:ja
+ENV LC_ALL=ja_JP.UTF-8
 
-COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
-
-WORKDIR /data
-
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
