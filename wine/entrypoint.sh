@@ -4,8 +4,10 @@ set -e
 
 stty size cols 80 || true
 
+# Pterodactyl の標準作業ディレクトリ
 cd /home/container
 
+# /data は一切使わない
 export HOME=/home/container
 export WINEPREFIX=/home/container/.wine
 export XDG_RUNTIME_DIR=/home/container/.tmp
@@ -17,7 +19,7 @@ export TERM=xterm-256color
 
 VERSION="${VERSION:-LATEST}"
 
-echo "[0] === LeviLamina サーバー起動 (自動インストール / ヘッドレス) ==="
+echo "[0] === LeviLamina JP (Pterodactyl /home/container 版) ==="
 echo "[0] 日時: $(date)"
 echo "[0] バージョン: ${VERSION}"
 echo "[0] EULA: ${EULA:-未設定}"
@@ -30,7 +32,7 @@ fi
 echo "[1] ディレクトリ準備..."
 mkdir -p "$XDG_RUNTIME_DIR" "$WINEPREFIX" || true
 
-# Wine 初期化（ハングしても抜ける）
+# Wine 初期化（/home/container/.wine）
 if [ ! -d "$WINEPREFIX/drive_c" ]; then
     echo "[2] Wine 環境を初期化中..."
     set +e
@@ -66,7 +68,7 @@ echo "[3] Using Bedrock server-port=${BEDROCK_PORT}"
 
 echo "[4] LeviLamina インストール確認..."
 if [ ! -f "bedrock_server_mod.exe" ]; then
-    echo "[4] LeviLamina を lip で自動インストールします (Linux ネイティブ)..."
+    echo "[4] LeviLamina を lip で自動インストールします..."
 
     if [ -n "$GITHUB_MIRROR_URL" ]; then
         lip config set github_proxy "$GITHUB_MIRROR_URL" || echo "[4] github_proxy 設定失敗"
