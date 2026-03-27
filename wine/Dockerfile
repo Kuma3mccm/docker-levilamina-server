@@ -1,30 +1,32 @@
-FROM debian:stable-slim@sha256:00a24d7c50ebe46934e31f6154c0434e2ab51259a65e028be42413c636385f7f
+FROM debian:stable-slim@sha256:99fc6d2a0882fcbcdc452948d2d54eab91faafc7db037df82425edcdcf950e1f
+
+ENV LIP_VERSION=v0.34.4
 
 RUN apt update \
- && apt install -y unzip \
-                   wget \
-                   locales \
-                   locales-all \
- && apt clean \
- && rm -rf /var/lib/apt/lists/*
+    && apt install -y unzip \
+    wget \
+    locales \
+    locales-all \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN dpkg --add-architecture i386 \
- && mkdir -pm755 /etc/apt/keyrings \
- && wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key \
- && wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bookworm/winehq-bookworm.sources \
- && sed -i -e's/ main/ main contrib/g' /etc/apt/sources.list.d/debian.sources
+    && mkdir -pm755 /etc/apt/keyrings \
+    && wget -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key \
+    && wget -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/debian/dists/bookworm/winehq-bookworm.sources \
+    && sed -i -e's/ main/ main contrib/g' /etc/apt/sources.list.d/debian.sources
 
 RUN apt update \
- && apt install -y --install-recommends winehq-stable xvfb cabextract \
- && wget -O /usr/bin/winetricks https://github.com/Winetricks/winetricks/raw/b76e1ee79ac57d7aceb384f74518fc423265810c/src/winetricks \
- && chmod +x /usr/bin/winetricks \
- && apt clean \
- && rm -rf /var/lib/apt/lists/*
+    && apt install -y --install-recommends winehq-stable xvfb cabextract \
+    && wget -O /usr/bin/winetricks https://github.com/Winetricks/winetricks/raw/b76e1ee79ac57d7aceb384f74518fc423265810c/src/winetricks \
+    && chmod +x /usr/bin/winetricks \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
 
-ADD https://github.com/futrime/lip/releases/download/v0.34.2/lip-0.34.2-win-x64.zip lip.zip
+ADD https://github.com/futrime/lip/releases/download/${LIP_VERSION}/lip-${LIP_VERSION}-win-x64.zip lip.zip
 
 RUN unzip lip.zip -d /opt/lip/ \
- && rm lip.zip
+    && rm lip.zip
 
 COPY --chmod=755 lip /usr/local/bin/lip
 
