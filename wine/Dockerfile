@@ -15,7 +15,7 @@ ENV LANG=ja_JP.UTF-8 \
 # Linux 向け .NET Runtime 10.x をインストール（URL は実環境に合わせて修正）
 RUN mkdir -p /usr/share/dotnet \
     && cd /usr/share/dotnet \
-    && wget -O dotnet.tar.gz https://download.visualstudio.microsoft.com/download/pr/xxx/dotnet-runtime-10.0.0-linux-x64.tar.gz \
+    && wget -O dotnet.tar.gz https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.5/dotnet-runtime-10.0.5-linux-x64.tar.gz \
     && tar -xzf dotnet.tar.gz \
     && rm dotnet.tar.gz \
     && ln -s /usr/share/dotnet/dotnet /usr/local/bin/dotnet
