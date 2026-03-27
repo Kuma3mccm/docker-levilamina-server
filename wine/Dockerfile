@@ -1,6 +1,6 @@
 FROM debian:stable-slim@sha256:99fc6d2a0882fcbcdc452948d2d54eab91faafc7db037df82425edcdcf950e1f
 
-ENV LIP_VERSION=v0.34.4
+ENV LIP_VERSION=0.34.4
 
 RUN apt update \
     && apt install -y unzip \
@@ -23,7 +23,7 @@ RUN apt update \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
-ADD https://github.com/futrime/lip/releases/download/${LIP_VERSION}/lip-${LIP_VERSION}-win-x64.zip lip.zip
+ADD https://github.com/futrime/lip/releases/download/v${LIP_VERSION}/lip-${LIP_VERSION}-win-x64.zip lip.zip
 
 RUN unzip lip.zip -d /opt/lip/ \
     && rm lip.zip
