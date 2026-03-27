@@ -1,6 +1,6 @@
 services:
   levilamina-server:
-    image: ghcr.io/liteldev/levilamina-server:latest-wine-jp
+    image: ghcr.io/kuma3mccm/docker-levilamina-server:latest-wine-jp
     environment:
       EULA: TRUE
     ports:
