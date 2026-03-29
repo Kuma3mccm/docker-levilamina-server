@@ -47,6 +47,15 @@ else
     echo "[2] 警告: drive_c がありませんが続行します"
 fi
 
+if [ ! -d "$WINEPREFIX/drive_c/Python" ]; then
+    echo "[2.5] Python (Windows) 環境を構成中..."
+    cp -r /usr/local/wine-python "$WINEPREFIX/drive_c/Python"
+    # pipのインストールを実行
+    wine cmd /c "C:\\Python\\python.exe C:\\Python\\get-pip.py" || true
+    # レジストリにPATHを追加
+    wine reg add "HKCU\\Environment" /v PATH /t REG_SZ /d "C:\\Python;C:\\Python\\Scripts;%PATH%" /f || true
+fi
+
 echo "[3] Bedrock server.properties のポート設定..."
 BEDROCK_PORT="${SERVER_PORT:-${SERVER_PORT_1:-${PORT:-19132}}}"
 

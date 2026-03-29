@@ -4,7 +4,7 @@ FROM ghcr.io/liteldev/levilamina-server:latest-wine
 USER root
 
 RUN apt-get update && apt-get install -y \
-    locales ca-certificates curl wget xz-utils libicu-dev \
+    locales ca-certificates curl wget xz-utils libicu-dev unzip \
     && sed -i 's/# ja_JP.UTF-8 UTF-8/ja_JP.UTF-8 UTF-8/' /etc/locale.gen \
     && locale-gen ja_JP.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
@@ -12,6 +12,15 @@ RUN apt-get update && apt-get install -y \
 ENV LANG=ja_JP.UTF-8 \
     LANGUAGE=ja_JP:ja \
     LC_ALL=ja_JP.UTF-8
+
+# Windows向けPython 3.11 (Embeddable) を /usr/local/wine-python に用意
+RUN mkdir -p /usr/local/wine-python \
+    && curl -L https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip -o /tmp/python.zip \
+    && unzip /tmp/python.zip -d /usr/local/wine-python \
+    && rm /tmp/python.zip \
+    && cd /usr/local/wine-python \
+    && curl -L https://bootstrap.pypa.io/get-pip.py -o get-pip.py \
+    && sed -i 's/#import site/import site/' python311._pth
 
 # Linux 向け .NET Runtime 10.x をインストール（URL は実環境に合わせて修正）
 RUN mkdir -p /usr/share/dotnet \
