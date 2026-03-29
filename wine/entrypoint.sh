@@ -47,18 +47,13 @@ else
     echo "[2] 警告: drive_c がありませんが続行します"
 fi
 
-if [ ! -d "$WINEPREFIX/drive_c/Python" ]; then
-    echo "[2.5] Python (Windows) 環境を構成中..."
-    cp -r /usr/local/wine-python "$WINEPREFIX/drive_c/Python"
+if [ ! -f "python311.dll" ] && [ -d "/usr/local/wine-python" ]; then
+    echo "[2.5] Python (Windows) 環境をカレントディレクトリに構成中..."
+    cp -r /usr/local/wine-python/* ./ || true
     
     # pipのインストールを実行
-    wine cmd /c "C:\\Python\\python.exe C:\\Python\\get-pip.py" || true
+    wine cmd /c "python.exe get-pip.py" || true
     
-    # レジストリにPATHとPython関連環境変数を追加
-    wine reg add "HKCU\\Environment" /v PATH /t REG_SZ /d "C:\\Python;C:\\Python\\Scripts;%PATH%" /f || true
-    wine reg add "HKCU\\Environment" /v PYTHONHOME /t REG_SZ /d "C:\\Python" /f || true
-    # plugins/EndstoneRuntime もPYTHONPATHに追加してモジュールを見つけやすくする
-    wine reg add "HKCU\\Environment" /v PYTHONPATH /t REG_SZ /d "C:\\Python\\Lib;C:\\Python\\site-packages;Z:\\home\\container\\plugins\\EndstoneRuntime" /f || true
     # Pythonのバッファリングを無効化して標準入出力のブロックを防ぐ
     wine reg add "HKCU\\Environment" /v PYTHONUNBUFFERED /t REG_SZ /d "1" /f || true
 fi
@@ -89,15 +84,15 @@ echo "[4.5] LeviStone の自動インストール確認..."
 if [ ! -d "plugins/EndstoneRuntime/levistone" ]; then
     echo "[4.5] LeviStone を自動インストールしています..."
     mkdir -p plugins/EndstoneRuntime
-    wine cmd /c "C:\\Python\\python.exe -m pip install levistone --target plugins/EndstoneRuntime" || echo "[4.5] 警告: pip install に失敗した可能性があります"
+    wine cmd /c "python.exe -m pip install levistone --target plugins/EndstoneRuntime" || echo "[4.5] 警告: pip install に失敗した可能性があります"
 else
     echo "[4.5] LeviStone はインストール済みです"
 fi
 
 # Embeddable Pythonに plugins/EndstoneRuntime のパスを認識させるために .pth を更新
-if [ -f "$WINEPREFIX/drive_c/Python/python311._pth" ]; then
-    if ! grep -q "plugins\\\\EndstoneRuntime" "$WINEPREFIX/drive_c/Python/python311._pth"; then
-        echo "Z:\\home\\container\\plugins\\EndstoneRuntime" >> "$WINEPREFIX/drive_c/Python/python311._pth"
+if [ -f "python311._pth" ]; then
+    if ! grep -q "plugins\\\\EndstoneRuntime" "python311._pth"; then
+        echo "plugins\\EndstoneRuntime" >> "python311._pth"
         echo "[4.6] python311._pth に EndstoneRuntime パスを追記しました"
     fi
 fi
@@ -108,4 +103,4 @@ wine --version || echo "[5] wine --version 取得失敗"
 echo "[6] === LeviLamina サーバ起動中 ==="
 echo "[6] サーバディレクトリ: $(pwd)"
 
-(tail -f /dev/null | wine bedrock_server_mod.exe) 2>&1
+(cat | wine bedrock_server_mod.exe) 2>&1
