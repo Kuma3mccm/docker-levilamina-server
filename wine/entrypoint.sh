@@ -108,4 +108,4 @@ wine --version || echo "[5] wine --version 取得失敗"
 echo "[6] === LeviLamina サーバ起動中 ==="
 echo "[6] サーバディレクトリ: $(pwd)"
 
-wine bedrock_server_mod.exe
+(tail -f /dev/null | wine bedrock_server_mod.exe) 2>&1
