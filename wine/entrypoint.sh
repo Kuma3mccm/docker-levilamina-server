@@ -50,11 +50,21 @@ fi
 if [ ! -d "$WINEPREFIX/drive_c/Python" ]; then
     echo "[2.5] Python (Windows) 環境を構成中..."
     cp -r /usr/local/wine-python "$WINEPREFIX/drive_c/Python"
+    
     # pipのインストールを実行
     wine cmd /c "C:\\Python\\python.exe C:\\Python\\get-pip.py" || true
-    # レジストリにPATHを追加
+    
+    # レジストリにPATHとPython関連環境変数を追加
     wine reg add "HKCU\\Environment" /v PATH /t REG_SZ /d "C:\\Python;C:\\Python\\Scripts;%PATH%" /f || true
+    wine reg add "HKCU\\Environment" /v PYTHONHOME /t REG_SZ /d "C:\\Python" /f || true
+    # plugins/EndstoneRuntime もPYTHONPATHに追加してモジュールを見つけやすくする
+    wine reg add "HKCU\\Environment" /v PYTHONPATH /t REG_SZ /d "C:\\Python\\Lib;C:\\Python\\site-packages;Z:\\home\\container\\plugins\\EndstoneRuntime" /f || true
+    # Pythonのバッファリングを無効化して標準入出力のブロックを防ぐ
+    wine reg add "HKCU\\Environment" /v PYTHONUNBUFFERED /t REG_SZ /d "1" /f || true
 fi
+
+# Wineのクラッシュダイアログを自動で閉じ、エラーログをコンソールに出力させる
+wine reg add "HKCU\\Software\\Wine\\WineDbg" /v ShowCrashDialog /t REG_DWORD /d 0 /f >/dev/null 2>&1 || true
 
 echo "[3] Bedrock server.properties のポート設定..."
 BEDROCK_PORT="${SERVER_PORT:-${SERVER_PORT_1:-${PORT:-19132}}}"
@@ -82,6 +92,14 @@ if [ ! -d "plugins/EndstoneRuntime/levistone" ]; then
     wine cmd /c "C:\\Python\\python.exe -m pip install levistone --target plugins/EndstoneRuntime" || echo "[4.5] 警告: pip install に失敗した可能性があります"
 else
     echo "[4.5] LeviStone はインストール済みです"
+fi
+
+# Embeddable Pythonに plugins/EndstoneRuntime のパスを認識させるために .pth を更新
+if [ -f "$WINEPREFIX/drive_c/Python/python311._pth" ]; then
+    if ! grep -q "plugins\\\\EndstoneRuntime" "$WINEPREFIX/drive_c/Python/python311._pth"; then
+        echo "Z:\\home\\container\\plugins\\EndstoneRuntime" >> "$WINEPREFIX/drive_c/Python/python311._pth"
+        echo "[4.6] python311._pth に EndstoneRuntime パスを追記しました"
+    fi
 fi
 
 echo "[5] Wine バージョン確認..."
