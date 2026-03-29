@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 set -e
-stty size cols 80 || true
+stty cols 160 rows 40 || true
 
 cd /home/container
 
